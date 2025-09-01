@@ -6,29 +6,38 @@ import { v } from "convex/values";
 // Server ---------------------------------------------------------------------------
 import { action, mutation, query } from "./_generated/server";
 import { api } from "./_generated/api";
+import { saveFileIdValidator } from "./saveFile";
 // Data -----------------------------------------------------------------------------
-import { DEFAULT_SAVE_FILE } from "@/data/_config";
 // Other ----------------------------------------------------------------------------
 import { authorize } from "./auth";
+import { ENCOUNTER_LIBRARY } from "@/data/encounters";
+import { DEFAULT_ENCOUNTER_STATE } from "@/data/_config";
 
 
 
 //______________________________________________________________________________________
 // ===== Validators =====
 
-export const saveFileIdValidator = v.optional( v.union(v.id("saveFile"), v.null()) );
+export const encounterStateIdValidator = v.optional( v.union(v.id("encounterState"), v.null()) );
 
 
 
 //______________________________________________________________________________________
 // ===== Reads =====
 
-export const readSaveFile = query({
-    args: { _id: saveFileIdValidator },
+export const readEncounterState = query({
+    args: { 
+        _id: encounterStateIdValidator,
+        saveFileId: saveFileIdValidator,
+    },
     handler: async (ctx, args) => authorize(ctx, async () => {
-        if (!args._id) return null;
-        return await ctx.db.get(args._id as Id<"saveFile">);
-    }, { trace: "readSaveFile" }),
+        const { _id, saveFileId } = args;
+        if (!_id) return null;
+        if (!saveFileId) return null;
+        const encounterState = await ctx.db.get(_id as Id<"encounterState">);
+        if(encounterState?.saveFileId !== saveFileId) throw new Error("This encounter state does not belong to this save file!");
+        return await ctx.db.get(_id as Id<"encounterState">);
+    }, { trace: "readEncounterState" }),
 });
 
 
@@ -36,21 +45,26 @@ export const readSaveFile = query({
 //______________________________________________________________________________________
 // ===== Creates =====
 
-export const validateOrCreateSaveFile = mutation({
-    args: { _id: v.optional( v.union( v.id("saveFile"), v.string(), v.null() ) ) },
+export const createEncounterState = mutation({
+    args: { 
+        saveFileId: saveFileIdValidator,
+        encounterKey: v.string(),
+        saveFileTime: v.number(),
+    },
     handler: async (ctx, args) => authorize(ctx, async () => {
-        if(args._id) {
-            const saveFile = await ctx.db.get( args._id as Id<"saveFile"> );
-            if(saveFile?._id) return saveFile?._id;
-        }
-        return await ctx.db.insert("saveFile", { ...DEFAULT_SAVE_FILE, updatedAt: Date.now() });
-    }, { trace: "validateOrCreateSaveFile" }),
-});
+        const { saveFileId, encounterKey, saveFileTime } = args;
+        if (!saveFileId) return null;
 
-export const createSaveFile = mutation({
-    handler: async (ctx) => authorize(ctx, async () => {
-        return await ctx.db.insert("saveFile", { ...DEFAULT_SAVE_FILE, updatedAt: Date.now() });
-    }, { trace: "createSaveFile" }),
+        const encounterDefaults = ENCOUNTER_LIBRARY[ encounterKey as keyof typeof ENCOUNTER_LIBRARY ];
+        if(!encounterDefaults) throw new Error(`You are trying to start an encounter that does not exist!`);
+
+        const updatedAt = Date.now();
+        const encounterStateId = await ctx.db.insert("encounterState", 
+            { ...DEFAULT_ENCOUNTER_STATE, ...encounterDefaults, saveFileId, encounterKey, updatedAt }
+        );
+        await ctx.db.patch(saveFileId, { activeEncounterStateId: encounterStateId, time: saveFileTime, updatedAt });
+        return encounterStateId;
+    }, { trace: "createEncounterState" }),
 });
 
 

@@ -1,4 +1,7 @@
 
+import { Doc } from "@/../convex/_generated/dataModel";
+
+
 
 //______________________________________________________________________________________
 // ===== Project =====
@@ -32,5 +35,17 @@ export const PROJECT_USER_ROLE_STANDARD_ALLOWED: Array<keyof typeof PROJECT_USER
 // ===== Save File =====
 
 export const DEFAULT_SAVE_FILE = {
-    dump: undefined,
+    time: 0,
 };
+
+
+
+interface DefaultEncounterState {
+    phase: Doc<"encounterState">["phase"];
+    time: number;
+}
+
+export const DEFAULT_ENCOUNTER_STATE = {
+    phase: "encounterStart",
+    time: 0,
+} as DefaultEncounterState;

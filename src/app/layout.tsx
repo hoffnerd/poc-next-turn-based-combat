@@ -2,7 +2,7 @@
 // Types ----------------------------------------------------------------------------
 import type { Metadata } from "next";
 // Packages -------------------------------------------------------------------------
-import { Geist, Geist_Mono } from "next/font/google";
+// import { Geist, Geist_Mono } from "next/font/google";
 // Data -----------------------------------------------------------------------------
 // Server ---------------------------------------------------------------------------
 // Components -----------------------------------------------------------------------
@@ -15,15 +15,17 @@ import Providers from "@/components/providers/Providers";
 //______________________________________________________________________________________
 // ===== Constants =====
 
-const geistSans = Geist({
-    variable: "--font-geist-sans",
-    subsets: ["latin"],
-});
+// const geistSans = Geist({
+//     variable: "--font-geist-sans",
+//     subsets: ["latin"],
+// });
 
-const geistMono = Geist_Mono({
-    variable: "--font-geist-mono",
-    subsets: ["latin"],
-});
+// const geistMono = Geist_Mono({
+//     variable: "--font-geist-mono",
+//     subsets: ["latin"],
+// });
+
+// ${geistSans.variable} ${geistMono.variable}
 
 
 
@@ -50,7 +52,7 @@ export default function RootLayout({
     // ===== Component Return =====
     return (
         <html lang="en">
-            <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+            <body className={`antialiased dark`}>
                 <Providers>
                     {children}
                 </Providers>

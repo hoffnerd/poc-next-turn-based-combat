@@ -14,6 +14,7 @@ import type {
   FunctionReference,
 } from "convex/server";
 import type * as auth from "../auth.js";
+import type * as encounterState from "../encounterState.js";
 import type * as saveFile from "../saveFile.js";
 
 /**
@@ -26,6 +27,7 @@ import type * as saveFile from "../saveFile.js";
  */
 declare const fullApi: ApiFromModules<{
   auth: typeof auth;
+  encounterState: typeof encounterState;
   saveFile: typeof saveFile;
 }>;
 export declare const api: FilterApi<
